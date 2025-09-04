@@ -1,0 +1,35 @@
+# Build arguments go here.
+# See "gn args <out_dir> --list" for available build arguments.
+custom_toolchain="custom"
+target_cpu="arm"
+treat_warnings_as_errors = false
+chip_crypto="boringssl"
+ 
+#Disable Perfetto Tracing
+matter_enable_tracing_support=false
+matter_trace_config="///src/tracing/none"
+ 
+chip_build_tests=false
+chip_build_controller=false
+chip_build_example_creds=false
+chip_build_tools=false
+target_defines = ["_POSIX_THREADS", "_POSIX_TIMEOUTS", "_UNIX98_THREAD_MUTEX_ATTRIBUTES"]
+target_cflags = []
+target_cflags_cc = ["-std=gnu++17",
+"-I../../third_party/boringssl/repo/src/include",
+"-I../../third_party/jsoncpp/repo/include",
+"-I../../wpa_supplicant",
+"-I../../toolchain/arm-ca7-linux-uclibcgnueabihf-10.4.0/arm-ca7-linux-uclibcgnueabihf/sysroot/usr/include",
+"-I../../target-arm-ca7-linux-uclibcgnueabihf-c560wsv1/usr/include",
+"-I../../target-arm-ca7-linux-uclibcgnueabihf-c560wsv1/usr/include/glib-2.0",
+"-I../../target-arm-ca7-linux-uclibcgnueabihf-c560wsv1/usr/include/gio-unix-2.0",
+"-I../../toolchain/arm-ca7-linux-uclibcgnueabihf-10.4.0/lib/gcc/arm-ca7-linux-uclibcgnueabihf/10.4.0/include",
+"-isystem../../toolchain/arm-ca7-linux-uclibcgnueabihf-10.4.0/arm-ca7-linux-uclibcgnueabihf/include",
+"-isystem../../toolchain/arm-ca7-linux-uclibcgnueabihf-10.4.0/arm-ca7-linux-uclibcgnueabihf/include/c++/10.4.0"
+]
+target_cflags_c = [
+"-isystem../../toolchain/arm-ca7-linux-uclibcgnueabihf-10.4.0/arm-ca7-linux-uclibcgnueabihf/sysroot/usr/include",
+"-isystem../../toolchain/arm-ca7-linux-uclibcgnueabihf-10.4.0/arm-ca7-linux-uclibcgnueabihf/include",
+"-isystem../../.environment/cipd/packages/pigweed/clang_sysroot/usr/include/arm-linux-gnueabihf",
+]
+target_ldflags = ["-lpthread"] 

@@ -26,12 +26,12 @@ namespace DeviceLayer {
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetVendorId(uint16_t & vendorId)
 {
-    return Internal::PosixConfig::ReadConfigValue(Internal::PosixConfig::kConfigKey_VendorId, vendorId);
+    return CHIP_ERROR_NOT_IMPLEMENTED;
 }
 
 CHIP_ERROR DeviceInstanceInfoProviderImpl::GetProductId(uint16_t & productId)
 {
-    return Internal::PosixConfig::ReadConfigValue(Internal::PosixConfig::kConfigKey_ProductId, productId);
+    return CHIP_ERROR_NOT_IMPLEMENTED;
 }
 
 } // namespace DeviceLayer

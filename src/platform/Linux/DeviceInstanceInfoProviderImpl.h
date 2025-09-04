@@ -42,3 +42,4 @@ inline DeviceInstanceInfoProviderImpl & DeviceInstanceInfoProviderMgrImpl()
 }
 } // namespace DeviceLayer
 } // namespace chip
+
