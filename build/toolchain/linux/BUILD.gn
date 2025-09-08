@@ -91,3 +91,16 @@ gcc_toolchain("linux_arm64_clang") {
     is_clang = true
   }
 }
+
+gcc_toolchain("linux_arm_ca7_gcc") {
+  cc = "${_toolprefix}gcc"
+  cxx = "${_toolprefix}g++"
+  ar = "${_toolprefix}ar"
+
+  toolcahin_args = {
+    current_os = "openwrt"
+    current_cpu = "arm"
+    is_clang = false
+  }
+}
+

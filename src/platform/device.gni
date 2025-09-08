@@ -16,7 +16,7 @@ import("//build_overrides/chip.gni")
 import("${chip_root}/src/ble/ble.gni")
 
 declare_args() {
-  # Device platform layer: cc13x4_26x4, cc32xx, darwin, efr32, esp32, external, freertos, linux, nrfconnect, nxp, qpg, tizen, cyw30739, bl602, zephyr, beken, none.
+  # Device platform layer: cc13x4_26x4, cc32xx, darwin, efr32, esp32, external, freertos, linux, nrfconnect, nxp, qpg, tizen, cyw30739, bl602, zephyr, beken, openwrt, none.
 
   chip_device_platform = "auto"
   chip_platform_target = ""
@@ -42,6 +42,8 @@ if (chip_device_platform == "auto") {
     chip_device_platform = "zephyr"
   } else if (current_os == "nuttx") {
     chip_device_platform = "nuttx"
+  } else if (current_os == "OpenWRT") {
+    chip_device_platform = "openwrt"
   } else {
     chip_device_platform = "none"
   }
@@ -53,7 +55,8 @@ declare_args() {
       chip_device_platform == "linux" || chip_device_platform == "qpg" ||
       chip_device_platform == "cc13x4_26x4" ||
       chip_device_platform == "tizen" || chip_device_platform == "stm32" ||
-      chip_device_platform == "webos" || chip_device_platform == "realtek_bee"
+      chip_device_platform == "webos" || chip_device_platform == "realtek_bee" ||
+      chip_device_platform == "openwrt"
 }
 
 declare_args() {
@@ -72,7 +75,7 @@ declare_args() {
       chip_device_platform == "webos" || chip_device_platform == "cc32xx" ||
       chip_device_platform == "bl602" || chip_device_platform == "beken" ||
       chip_device_platform == "mt793x" || chip_device_platform == "asr" ||
-      (chip_device_platform == "darwin" && current_os == "mac")
+      (chip_device_platform == "darwin" && current_os == "mac") || chip_device_platfor == "openwrt"
 
   # Enable ethernet support
   chip_enable_ethernet = false
@@ -99,7 +102,7 @@ declare_args() {
       chip_device_platform == "ameba" || chip_device_platform == "webos" ||
       chip_device_platform == "cc32xx" || chip_device_platform == "beken" ||
       chip_device_platform == "mt793x" || chip_device_platform == "asr" ||
-      chip_device_platform == "nuttx") {
+      chip_device_platform == "nuttx" || chip_device_platform == "openwrt") {
     chip_mdns = "minimal"
   } else if (chip_device_platform == "darwin" ||
              chip_device_platform == "cc13x4_26x4" || current_os == "android" ||
@@ -115,7 +118,7 @@ declare_args() {
   if (chip_device_platform == "darwin" || chip_device_platform == "linux" ||
       chip_device_platform == "fake" || chip_device_platform == "efr32" ||
       chip_device_platform == "SiWx917" || chip_device_platform == "nuttx" ||
-      chip_device_platform == "qpg") {
+      chip_device_platform == "qpg" || chip_device_platform == "openwrt") {
     chip_persist_subscriptions = true
   } else {
     chip_persist_subscriptions = false
@@ -214,6 +217,8 @@ if (chip_device_platform == "cc13x4_26x4") {
   _chip_device_layer = "NuttX"
 } else if (chip_device_platform == "stm32") {
   _chip_device_layer = "stm32"
+} else if (chip_device_platform == "openwrt") {
+  _chip_device_layer = "OpenWRT"
 }
 
 declare_args() {
@@ -279,5 +284,6 @@ assert(
         chip_device_platform == "bl616" || chip_device_platform == "bl702" ||
         chip_device_platform == "bl702l" || chip_device_platform == "mt793x" ||
         chip_device_platform == "SiWx917" || chip_device_platform == "asr" ||
-        chip_device_platform == "stm32" || chip_device_platform == "nuttx",
+        chip_device_platform == "stm32" || chip_device_platform == "nuttx" ||
+        chip_device_platform == "openwrt",
     "Please select a valid value for chip_device_platform")

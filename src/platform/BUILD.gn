@@ -25,7 +25,7 @@ import("device.gni")
 if (chip_enable_openthread) {
   import("//build_overrides/openthread.gni")
 
-  if (chip_device_platform == "linux" || chip_device_platform == "darwin") {
+  if (chip_device_platform == "linux" || chip_device_platform == "darwin" || chip_device_platform == "openwrt") {
     import("//build_overrides/ot_br_posix.gni")
   }
 }
@@ -51,7 +51,7 @@ if (chip_device_platform != "none" && chip_device_platform != "external") {
     # === FOR TRANSITION UNTIL ALL EXAMPLES PROVIDE THEIR OWN ===
     # Linux platform has already transitioned.
     chip_use_transitional_commissionable_data_provider =
-        chip_device_platform != "linux" && chip_device_platform != "android"
+        chip_device_platform != "linux" && chip_device_platform != "android" && chip_device_platform != "openwrt"
 
     # Enable default/generic test-mode DeviceInstanceInfoProvider in GenericConfigurationManagerImpl
     # === FOR TRANSITION UNTIL ALL EXAMPLES PROVIDE THEIR OWN ===
@@ -106,7 +106,8 @@ if (chip_device_platform != "none" && chip_device_platform != "external") {
   if (chip_stack_lock_tracking == "auto") {
     if (chip_device_platform == "linux" || chip_device_platform == "tizen" ||
         chip_device_platform == "android" || current_os == "freertos" ||
-        chip_device_platform == "webos" || chip_device_platform == "darwin") {
+        chip_device_platform == "webos" || chip_device_platform == "darwin" ||
+        chip_device_platform == "openwrt"){
       # TODO: should be fatal for development. Change once bugs are fixed
       chip_stack_lock_tracking = "fatal"
     } else {
@@ -137,7 +138,7 @@ if (chip_device_platform != "none" && chip_device_platform != "external") {
     chip_device_uses_otbr_posix_dbus =
         chip_enable_openthread &&
         (chip_device_platform == "linux" || chip_device_platform == "tizen" ||
-         chip_device_platform == "webos")
+         chip_device_platform == "webos" || chip_device_platform == "openwrt)
 
     defines = [
       "CHIP_DEVICE_CONFIG_ENABLE_WPA=${chip_device_config_enable_wpa}",
@@ -163,7 +164,8 @@ if (chip_device_platform != "none" && chip_device_platform != "external") {
         chip_device_platform == "tizen" || chip_device_platform == "android" ||
         chip_device_platform == "webos" || chip_device_platform == "bl602" ||
         chip_device_platform == "bl702" || chip_device_platform == "bl702l" ||
-        chip_device_platform == "bl616" || chip_device_platform == "esp32") {
+        chip_device_platform == "bl616" || chip_device_platform == "esp32" ||
+        chip_device_platform == "openwrt") {
       defines += [ "CHIP_DEVICE_CONFIG_ENABLE_CHIPOBLE=${chip_enable_ble}" ]
     }
 
@@ -342,6 +344,12 @@ if (chip_device_platform != "none" && chip_device_platform != "external") {
         "CHIP_DEVICE_LAYER_TARGET=NuttX",
         "CHIP_DEVICE_CONFIG_ENABLE_WIFI=${chip_enable_wifi}",
       ]
+    } else if (chip_device_platform = "openwrt") {
+      device_layer_target_define = "OPENWRT"
+      defines += [
+        "CHIP_DEVICE_LAYER_TARGET=OpenWRT",
+        "CHIP_DEVICE_CONFIG_ENABLE_WIFI=${chip_enable_wifi}"
+      ]
     } else {
       device_layer_target_define = ""
     }
@@ -383,6 +391,7 @@ if (chip_device_platform != "none" && chip_device_platform != "external") {
       "ASR",
       "STM32",
       "NUTTX",
+      "OPENWRT"
     ]
     foreach(possible_device_layer_target_define,
             possible_device_layer_target_defines) {
@@ -435,7 +444,7 @@ if (chip_device_platform != "none" && chip_device_platform != "external") {
 
     defines += [ "CHIP_DEVICE_CONFIG_MAX_DISCOVERED_IP_ADDRESSES=${chip_max_discovered_ip_addresses}" ]
 
-    if (chip_enable_openthread && chip_device_platform != "linux" &&
+    if (chip_enable_openthread && chip_device_platform != "linux" && chip_device_platform != "openwrt" &&
         chip_device_platform != "tizen" && chip_device_platform != "webos") {
       defines += [ "CHIP_DEVICE_CONFIG_THREAD_NETWORK_ENDPOINT_ID=${chip_device_config_thread_network_endpoint_id}" ]
     }
@@ -566,7 +575,7 @@ if (chip_device_platform != "none") {
     }
 
     # Linux has its own NetworkCommissioningThreadDriver
-    if (chip_enable_openthread && chip_device_platform != "linux" &&
+    if (chip_enable_openthread && chip_device_platform != "linux" && chip_device_platform != "openwrt" &&
         chip_device_platform != "tizen" && chip_device_platform != "webos") {
       sources += [
         "OpenThread/GenericNetworkCommissioningThreadDriver.cpp",
@@ -599,6 +608,8 @@ if (chip_device_platform != "none") {
       _platform_target = "ESP32"
     } else if (chip_device_platform == "linux") {
       _platform_target = "Linux"
+    } else if (chipp_device_platform == "openwrt) {
+      _platform_target = "OpenWRT"
     } else if (chip_device_platform == "nrfconnect") {
       _platform_target = "nrfconnect"
     } else if (chip_device_platform == "qpg") {

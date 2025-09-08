@@ -1,0 +1,42 @@
+# Copyright (c) 2021 Project CHIP Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build_overrides/build.gni")
+
+import("${build_root}/config/tizen/config.gni")
+import("${build_root}/toolchain/gcc_toolchain.gni")
+
+template("openwrt_toolchain") {
+  _invoker_toolchain_args = invoker.toolchain_args
+
+  _openwrt_toolchain_args = {
+    current_os = "openwrt"
+    is_clang = false
+
+    forward_variables_from(_invoker_toolchain_args, "*")
+  }
+
+  if (_invoker_toolchain_args.current_cpu == "arm") {
+    _openwrt_toolchain_prefix = "${openwrt_sdk_root}/tools/arm-ca7-linux-uclibcgnueabihf-10.4.0/bin/arm-ca7-linux-uclibcgnueabihf-"
+  } else {
+    assert(false, "CPU architecture is not supported.")
+  }
+
+  gcc_toolchain(target_name) {
+    toolchain_args = _openwrt_toolchain_args
+    ar = _openwrt_toolchain_prefix + "ar"
+    cc = _openwrt_toolchain_prefix + "gcc"
+    cxx = _openwrt_toolchain_prefix + "g++"
+  }
+}
