@@ -22,12 +22,19 @@
 
 #include <app/icd/server/ICDServerConfig.h>
 #include <lib/support/ThreadOperationalDataset.h>
-
+#include <platform/GLibTypeDeleter.h>
+#include <platform/Linux/dbus/openthread/DBusOpenthread.h>
 #include <platform/NetworkCommissioning.h>
 #include <platform/internal/CHIPDeviceLayerInternal.h>
 #include <platform/internal/DeviceNetworkInfo.h>
 
 namespace chip {
+
+template <>
+struct GAutoPtrDeleter<OpenthreadBorderRouter>
+{
+    using deleter = GObjectDeleter;
+};
 
 namespace DeviceLayer {
 
@@ -50,6 +57,10 @@ public:
     bool _TryLockThreadStack() { return false; }            // Intentionally left blank
     void _UnlockThreadStack() {}                            // Intentionally left blank
 
+#if CHIP_DEVICE_CONFIG_ENABLE_THREAD_SRP_CLIENT
+    void _WaitOnSrpClearAllComplete() {}
+    void _NotifySrpClearAllComplete() {}
+#endif // CHIP_DEVICE_CONFIG_ENABLE_THREAD_SRP_CLIENT
 
     bool _HaveRouteToAddress(const Inet::IPAddress & destAddr);
 
@@ -86,6 +97,10 @@ public:
     ConnectivityManager::ThreadDeviceType _GetThreadDeviceType();
 
     CHIP_ERROR _SetThreadDeviceType(ConnectivityManager::ThreadDeviceType deviceType);
+
+#if CHIP_CONFIG_ENABLE_ICD_SERVER
+    CHIP_ERROR _SetPollingInterval(System::Clock::Milliseconds32 pollingInterval);
+#endif /* CHIP_CONFIG_ENABLE_ICD_SERVER */
 
     bool _HaveMeshConnectivity();
 
@@ -134,10 +149,12 @@ private:
         uint8_t lqi;
     };
 
+    GAutoPtr<OpenthreadBorderRouter> mProxy;
+
     static CHIP_ERROR GLibMatterContextInitThreadStack(ThreadStackManagerImpl * self);
     static CHIP_ERROR GLibMatterContextCallAttach(ThreadStackManagerImpl * self);
     static CHIP_ERROR GLibMatterContextCallScan(ThreadStackManagerImpl * self);
-    static void OnDbusPropertiesChanged(void * proxy, GVariant * changed_properties,
+    static void OnDbusPropertiesChanged(OpenthreadBorderRouter * proxy, GVariant * changed_properties,
                                         const gchar * const * invalidated_properties, gpointer user_data);
     void ThreadDeviceRoleChangedHandler(const gchar * role);
 

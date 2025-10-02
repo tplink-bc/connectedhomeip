@@ -29,6 +29,11 @@
 #include <ble/Ble.h>
 #include <platform/internal/BLEManager.h>
 
+#include "bluez/BluezAdvertisement.h"
+#include "bluez/BluezEndpoint.h"
+#include "bluez/BluezObjectManager.h"
+#include "bluez/ChipDeviceScanner.h"
+#include "bluez/Types.h"
 
 namespace chip {
 namespace DeviceLayer {
@@ -64,7 +69,8 @@ class BLEManagerImpl final : public BLEManager,
                              private Ble::BleLayer,
                              private Ble::BlePlatformDelegate,
                              private Ble::BleApplicationDelegate,
-                             private Ble::BleConnectionDelegate
+                             private Ble::BleConnectionDelegate,
+                             private ChipDeviceScannerDelegate
 {
     // Allow the BLEManager interface class to delegate method calls to
     // the implementation methods provided by this class.
@@ -72,7 +78,7 @@ class BLEManagerImpl final : public BLEManager,
 
 public:
     CHIP_ERROR ConfigureBle(uint32_t aAdapterId, bool aIsCentral);
-    //void OnScanError(CHIP_ERROR error) override;
+    void OnScanError(CHIP_ERROR error) override;
 
     // Driven by BlueZ IO
     static void HandleNewConnection(BLE_CONNECTION_OBJECT conId);
@@ -85,6 +91,7 @@ public:
     static void HandleTXCharCCCDWrite(BLE_CONNECTION_OBJECT user_data);
     static void HandleTXComplete(BLE_CONNECTION_OBJECT user_data);
 
+    // Internal platform specific notifications
     static void NotifyBLEAdapterAdded(unsigned int aAdapterId, const char * aAdapterAddress);
     static void NotifyBLEAdapterRemoved(unsigned int aAdapterId, const char * aAdapterAddress);
     static void NotifyBLEPeripheralRegisterAppComplete(CHIP_ERROR error);
@@ -135,8 +142,8 @@ private:
 
     // ===== Members that implement virtual methods on ChipDeviceScannerDelegate
 
-    //    void OnDeviceScanned(BluezDevice1 & device, const chip::Ble::ChipBLEDeviceIdentificationInfo & info) override;
-    //void OnScanComplete() override;
+    void OnDeviceScanned(BluezDevice1 & device, const chip::Ble::ChipBLEDeviceIdentificationInfo & info) override;
+    void OnScanComplete() override;
 
     // ===== Members for internal use by the following friends.
 
@@ -171,7 +178,37 @@ private:
         kMaxAdvertisementDataSetSize = 31  // TODO: verify this
     };
 
+    void DriveBLEState();
+    void DisableBLEService(CHIP_ERROR err);
+    BluezAdvertisement::AdvertisingIntervals GetAdvertisingIntervals() const;
+    void InitiateScan(BleScanState scanType);
+    void CleanScanConfig();
+    void ClearAdvertisingFlag();
+
+    static void HandleAdvertisingTimer(chip::System::Layer *, void * appState);
+    static void HandleScanTimer(chip::System::Layer *, void * appState);
+    static void HandleConnectTimer(chip::System::Layer *, void * appState);
+
+    // Public CHIPoBLE notifications
+    void NotifyCHIPoBLEConnectionEstablished();
+    void NotifyCHIPoBLEConnectionClosed();
+    void NotifyCHIPoBLEAdvertisingChange(enum ActivityChange change);
+
+    CHIPoBLEServiceMode mServiceMode;
     BitFlags<Flags> mFlags;
+
+    BluezObjectManager mBluezObjectManager;
+    GAutoPtr<BluezAdapter1> mAdapter;
+    uint32_t mAdapterId = 0;
+
+    char mDeviceName[kMaxDeviceNameLength + 1];
+    bool mIsCentral = false;
+    BluezEndpoint mEndpoint{ mBluezObjectManager };
+
+    BluezAdvertisement mBLEAdvertisement{ mEndpoint };
+
+    ChipDeviceScanner mDeviceScanner{ mBluezObjectManager };
+    BLEScanConfig mBLEScanConfig;
 };
 
 /**

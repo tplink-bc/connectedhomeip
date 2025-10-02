@@ -29,6 +29,18 @@ if (chip_enable_openthread) {
   import("//build_overrides/ot_br_posix.gni")
 }
 
+if (chip_enable_nfc_based_commissioning) {
+  pkg_config("nfc_commissioning_config") {
+    packages = [ "libpcsclite" ]
+  }
+}
+
+if (chip_mdns == "platform") {
+  pkg_config("avahi_client_config") {
+    packages = [ "avahi-client" ]
+  }
+}
+
 static_library("Linux") {
   sources = [
     "../DeviceSafeQueue.cpp",
@@ -68,11 +80,38 @@ static_library("Linux") {
   deps = [
     "${chip_root}/src/app:app_config",
     "${chip_root}/src/app/common:ids",
+    "${chip_root}/src/app/common:metadata",
     "${chip_root}/src/app/icd/server:icd-server-config",
     "${chip_root}/src/credentials:credentials_header",
     "${chip_root}/src/setup_payload",
   ]
 
+  if (chip_enable_openthread) {
+    sources += [ "NetworkCommissioningThreadDriver.cpp" ]
+  }
+
+  if (chip_enable_ble) {
+    sources += [
+      "BLEManagerImpl.cpp",
+      "BLEManagerImpl.h",
+      "BlePlatformConfig.h",
+      "bluez/AdapterIterator.cpp",
+      "bluez/AdapterIterator.h",
+      "bluez/BluezAdvertisement.cpp",
+      "bluez/BluezAdvertisement.h",
+      "bluez/BluezConnection.cpp",
+      "bluez/BluezConnection.h",
+      "bluez/BluezEndpoint.cpp",
+      "bluez/BluezEndpoint.h",
+      "bluez/BluezObjectIterator.h",
+      "bluez/BluezObjectList.h",
+      "bluez/BluezObjectManager.cpp",
+      "bluez/BluezObjectManager.h",
+      "bluez/ChipDeviceScanner.cpp",
+      "bluez/ChipDeviceScanner.h",
+      "bluez/Types.h",
+    ]
+  }
 
   if (chip_with_trusty_os) {
     sources += [
@@ -89,6 +128,51 @@ static_library("Linux") {
 
   public_configs = []
 
+  if (chip_enable_nfc_based_commissioning) {
+    sources += [
+      "NFCCommissioningManagerImpl.cpp",
+      "NFCCommissioningManagerImpl.h",
+    ]
+    public_configs += [ ":nfc_commissioning_config" ]
+  }
+
+  if (chip_mdns == "platform") {
+    sources += [
+      "DnssdImpl.cpp",
+      "DnssdImpl.h",
+    ]
+
+    deps += [ "${chip_root}/src/lib/dnssd:platform_header" ]
+
+    public_configs += [ ":avahi_client_config" ]
+  }
+
+  if (chip_enable_ota_requestor) {
+    sources += [
+      "OTAImageProcessorImpl.cpp",
+      "OTAImageProcessorImpl.h",
+    ]
+  }
+
+  if (chip_enable_openthread) {
+    sources += [
+      "ThreadStackManagerImpl.cpp",
+      "ThreadStackManagerImpl.h",
+    ]
+
+    deps += [ "${chip_root}/src/app:app_config" ]
+    public_deps += [ "dbus/openthread" ]
+  }
+
+  if (chip_enable_wifi) {
+    sources += [ "NetworkCommissioningWiFiDriver.cpp" ]
+
+    public_deps += [ "dbus/wpa" ]
+  }
+
+  if (chip_enable_ble) {
+    public_deps += [ "dbus/bluez" ]
+  }
 
   if (chip_with_trusty_os) {
     public_deps += [ "${chip_root}/third_party/libtrustymatter" ]
